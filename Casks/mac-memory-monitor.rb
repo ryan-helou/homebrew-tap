@@ -4,10 +4,10 @@ cask "mac-memory-monitor" do
 
   url "https://github.com/ryan-helou/MacMemoryMonitor/releases/download/v#{version}/MacMemoryMonitor-#{version}.zip"
   name "Mac Memory Monitor"
-  desc "Menu bar app that shows why your Mac is lagging and helps free memory"
+  desc "Menu bar memory monitor that explains lag and helps free memory"
   homepage "https://github.com/ryan-helou/MacMemoryMonitor"
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: :sonoma
 
   app "Mac Memory Monitor.app"
 
