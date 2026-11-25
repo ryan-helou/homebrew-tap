@@ -1,6 +1,6 @@
 cask "mac-memory-monitor" do
-  version "1.3.0"
-  sha256 "4a3744f421495e6728a56d984d75f10155bf776952e6fe4049b9237c49af8d29"
+  version "1.3.1"
+  sha256 "04d8d1413e0e9bf281361ef64829a43898d3a9b1466214984c74bb5e348119ce"
 
   url "https://github.com/ryan-helou/MacMemoryMonitor/releases/download/v#{version}/MacMemoryMonitor-#{version}.zip"
   name "Mac Memory Monitor"
