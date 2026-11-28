@@ -1,6 +1,6 @@
 name: Update casks
 
-# Every hour, check for a new Mac Memory Monitor release and update the cask to it.
+# Every hour, check each app for a new release and update its cask.
 on:
   schedule:
     - cron: "17 * * * *"
@@ -14,21 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bump mac-memory-monitor
+      - name: Bump casks
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          CASK=Casks/mac-memory-monitor.rb
-          TAG=$(gh release view -R ryan-helou/MacMemoryMonitor --json tagName,isDraft -q 'select(.isDraft==false) | .tagName')
-          VERSION=${TAG#v}
-          CURRENT=$(sed -n 's/^  version "\(.*\)"/\1/p' $CASK)
-          if [ "$VERSION" = "$CURRENT" ]; then echo "Already on $VERSION"; exit 0; fi
-          URL="https://github.com/ryan-helou/MacMemoryMonitor/releases/download/$TAG/MacMemoryMonitor-$VERSION.zip"
-          curl -sfL -o app.zip "$URL"
-          SHA=$(sha256sum app.zip | cut -d' ' -f1)
-          sed -i "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA\"/" $CASK
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "mac-memory-monitor $VERSION"
+          # cask file | repo | zip name prefix
+          while IFS='|' read -r CASK REPO PREFIX; do
+            TAG=$(gh release view -R "$REPO" --json tagName,isDraft -q 'select(.isDraft==false) | .tagName')
+            VERSION=${TAG#v}
+            CURRENT=$(sed -n 's/^  version "\(.*\)"/\1/p' "$CASK")
+            if [ "$VERSION" = "$CURRENT" ]; then echo "$CASK already on $VERSION"; continue; fi
+            URL="https://github.com/$REPO/releases/download/$TAG/$PREFIX-$VERSION.zip"
+            curl -sfL -o app.zip "$URL"
+            SHA=$(sha256sum app.zip | cut -d' ' -f1)
+            rm app.zip
+            sed -i "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA\"/" "$CASK"
+            git commit -am "$(basename "$CASK" .rb) $VERSION"
+          done <<'LIST'
+          Casks/mac-memory-monitor.rb|ryan-helou/MacMemoryMonitor|MacMemoryMonitor
+          Casks/music-notch.rb|ryan-helou/MusicNotch|MusicNotch
+          LIST
           git push
